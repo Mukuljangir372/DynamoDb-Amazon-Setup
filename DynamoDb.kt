@@ -16,47 +16,37 @@ import com.mu.jan.relax.utils.runOnBack
 object DynamoDb {
     fun createTable(mContext: Context){
         runOnBack {
+            //This is my region in Aws
+            val region = Regions.US_EAST_2
+            
             val credentials = CognitoCachingCredentialsProvider(
-                mContext,"us-east-2:5fd9d21b-3291-4aa9-81d5-b83173cb5216",Regions.US_EAST_2
+                mContext,"IDENTITY_POOL_ID","YOUR_REGION"
             )
 
             val client = AmazonDynamoDBClient(credentials)
-
             client.setRegion(Region.getRegion(Regions.US_EAST_2))
 
+           //create table 
+           val tableRequest = CreateTableRequest().withTableName("Demo")
+               .withKeySchema(mutableListOf<KeySchemaElement>(KeySchemaElement("id",KeyType.HASH)))
+               .withAttributeDefinitions(mutableListOf<AttributeDefinition>(AttributeDefinition("id",ScalarAttributeType.N)))
+               .withProvisionedThroughput(ProvisionedThroughput(1000,1000))
 
-//            val tableRequest = CreateTableRequest().withTableName("Demo")
-//                .withKeySchema(mutableListOf<KeySchemaElement>(KeySchemaElement("id",KeyType.HASH)))
-//                .withAttributeDefinitions(mutableListOf<AttributeDefinition>(AttributeDefinition("id",ScalarAttributeType.N)))
-//                .withProvisionedThroughput(ProvisionedThroughput(1000,1000))
-//
-//            client.createTable(tableRequest)
-
-
+           client.createTable(tableRequest)
+           
+            //loading table
             val table = Table.loadTable(client,"Demo")
 
+            //adding item 
             val doc = Document()
             doc.put("id","1")
             try{
                 table.putItem(doc)
-                Log.d("ABC","Success")
+                Log.d("ABC","successfully added item to table named Demo")
             }catch (e: Exception){
+                //failed to add item
                 Log.d("ABC","${e.localizedMessage}}")
             }
-
-
-
-////            val value = AttributeValue("id")
-////
-////            val map = hashMapOf<String,AttributeValue>(
-////                "name" to value
-////            )
-//            try{
-////                client.putItem("Demo",map)
-//                Log.d("ABC","Success")
-//            }catch (e: Exception){
-//                Log.d("ABC","${e.localizedMessage}}")
-//            }
 
         }
 
